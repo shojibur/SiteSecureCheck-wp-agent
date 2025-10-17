@@ -34,7 +34,7 @@ class SiteController extends Controller
 
     public function show(Site $site): Response
     {
-        $scans = $site->scans()->latest()->limit(10)->get(['id','score','status','applied','created_at']);
+        $scans = $site->scans()->latest()->limit(10)->get(['id','score','status','applied','plan','raw','created_at']);
         $latestIssues = optional($site->scans()->latest()->first())->issues ?? [];
         $actions = $site->actions()->latest()->limit(10)->get(['type','created_at']);
         $siteData = $site->only(['id','name','domain','region_mode','auto_fix','last_score','teams_webhook','email','created_at']);
@@ -67,7 +67,7 @@ class SiteController extends Controller
     {
         $action = $site->actions()->create(['scan_id'=>$scan->id,'type'=>'apply','payload'=>['scan_id'=>$scan->id]]);
         dispatch(new ApplyFixesJob($site, $scan, $action));
-        return response()->json(['queued'=>true], 202);
+        return redirect()->back()->with('message', 'Fixes are being applied!');
     }
 
     public function checkConnection(Site $site)

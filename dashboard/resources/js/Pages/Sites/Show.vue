@@ -242,17 +242,20 @@ const currentPlan = ref({})
 
 function queueScan(){
   if (!site?.id) return
-  fetch(`/sites/${site.id}/scan`,{method:'POST'})
+  router.post(`/sites/${site.id}/scan`)
 }
 
 function viewPlan(s){
-  currentPlan.value = s.plan || {}
+  console.log('View plan for scan:', s)
+  currentPlan.value = s.plan || s.raw || {}
+  console.log('Current plan:', currentPlan.value)
   planDialog.value = true
 }
 
 function applyFixes(s){
   if (!site?.id) return
-  fetch(`/sites/${site.id}/scans/${s.id}/apply`,{method:'POST'})
+  if (!confirm('Apply security fixes to this site?')) return
+  router.post(`/sites/${site.id}/scans/${s.id}/apply`)
 }
 
 function deleteScan(s){
