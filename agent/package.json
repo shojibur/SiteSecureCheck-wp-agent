@@ -1,0 +1,23 @@
+{
+  "name": "ssc-agent",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p .",
+    "cdk": "cdk",
+    "synth": "cdk synth"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.131",
+    "aws-cdk": "^2.154.0",
+    "aws-cdk-lib": "^2.154.0",
+    "constructs": "^10.3.0",
+    "typescript": "^5.4.5",
+    "ts-node": "^10.9.2",
+    "esbuild": "^0.21.5"
+  },
+  "dependencies": {
+    "source-map-support": "^0.5.21"
+  }
+}
