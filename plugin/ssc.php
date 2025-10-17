@@ -12,6 +12,7 @@ require_once __DIR__ . '/inc/rest.php';
 require_once __DIR__ . '/inc/csp.php';
 require_once __DIR__ . '/inc/banner.php';
 require_once __DIR__ . '/inc/rollback.php';
+require_once __DIR__ . '/inc/admin.php';
 
 register_activation_hook(__FILE__, function () {
     if (!get_option('ssc_api_key')) {
