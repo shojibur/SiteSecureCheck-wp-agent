@@ -34,6 +34,7 @@
               <tr>
                 <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Name</th>
                 <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Domain</th>
+                <th class="px-6 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">Status</th>
                 <th class="px-6 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">Score</th>
                 <th class="px-6 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">Auto Fix</th>
                 <th class="px-6 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">Actions</th>
@@ -46,6 +47,29 @@
                 </td>
                 <td class="px-6 py-4">
                   <div class="text-sm text-gray-600 font-mono">{{ s.domain }}</div>
+                </td>
+                <td class="px-6 py-4 text-center">
+                  <button @click="checkConnection(s)" :disabled="checkingId===s.id" class="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded-full transition-all" :class="{
+                    'bg-success-50 text-success-700 hover:bg-success-100': s.connection_status === 'connected',
+                    'bg-danger-50 text-danger-700 hover:bg-danger-100': s.connection_status === 'error',
+                    'bg-gray-100 text-gray-600 hover:bg-gray-200': s.connection_status === 'unknown' || !s.connection_status,
+                    'opacity-50 cursor-not-allowed': checkingId===s.id
+                  }" :title="s.connection_error || 'Click to check connection'">
+                    <svg v-if="checkingId===s.id" class="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
+                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <svg v-else-if="s.connection_status === 'connected'" class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                    </svg>
+                    <svg v-else-if="s.connection_status === 'error'" class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                    </svg>
+                    <svg v-else class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    {{ s.connection_status === 'connected' ? 'Connected' : s.connection_status === 'error' ? 'Error' : 'Unknown' }}
+                  </button>
                 </td>
                 <td class="px-6 py-4 text-center">
                   <SiteScoreBadge :score="s.last_score" />
@@ -180,10 +204,24 @@ const openCreate = ref(false)
 const showConfirm = ref(false)
 const toDeleteId = ref(null)
 const busyId = ref(null)
+const checkingId = ref(null)
 const form = reactive({ name:'', domain:'', wp_api_base:'', wp_api_key:'', region_mode:'OTHER', auto_fix:true, teams_webhook:'', email:'' })
 
 function submitCreate(){ router.post('/sites', form, { onSuccess:()=>{ openCreate.value=false } }) }
 function confirmDelete(s){ toDeleteId.value=s.id; showConfirm.value=true }
 function doDelete(){ router.delete(`/sites/${toDeleteId.value}`) }
-function queueScan(s){ busyId.value=s.id; fetch(`/sites/${s.id}/scan`,{method:'POST'}).finally(()=>busyId.value=null) }
+function queueScan(s){
+  busyId.value=s.id;
+  router.post(`/sites/${s.id}/scan`, {}, {
+    onFinish: () => { busyId.value=null },
+    preserveScroll: true
+  });
+}
+function checkConnection(s){
+  checkingId.value=s.id;
+  router.post(`/sites/${s.id}/check-connection`, {}, {
+    onFinish: () => { checkingId.value=null },
+    preserveScroll: true
+  });
+}
 </script>

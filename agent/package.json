@@ -1,23 +1,28 @@
 {
   "name": "ssc-agent",
-  "version": "0.1.0",
-  "private": true,
+  "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "build": "tsc -p .",
+    "build": "tsc",
+    "watch": "tsc -w",
     "cdk": "cdk",
+    "deploy": "cdk deploy",
     "synth": "cdk synth"
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.131",
+    "@types/node": "^20.11.30",
     "aws-cdk": "^2.154.0",
     "aws-cdk-lib": "^2.154.0",
     "constructs": "^10.3.0",
-    "typescript": "^5.4.5",
+    "esbuild": "^0.21.5",
     "ts-node": "^10.9.2",
-    "esbuild": "^0.21.5"
+    "typescript": "^5.4.5"
   },
   "dependencies": {
-    "source-map-support": "^0.5.21"
+    "@aws-sdk/client-bedrock-runtime": "^3.533.0",
+    "@aws-sdk/client-lambda": "^3.533.0",
+    "@sparticuz/chromium": "^123.0.1",
+    "puppeteer-core": "^22.6.0"
   }
 }

@@ -11,5 +11,9 @@
     "resolveJsonModule": true,
     "skipLibCheck": true
   },
-  "include": ["cdk/**/*.ts", "lambdas/**/*.ts"]
+  "include": ["cdk/**/*.ts", "lambdas/**/*.ts"],
+  "ts-node": {
+    "esm": true,
+    "experimentalSpecifierResolution": "node"
+  }
 }

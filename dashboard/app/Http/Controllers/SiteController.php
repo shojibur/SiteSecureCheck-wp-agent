@@ -20,7 +20,7 @@ class SiteController extends Controller
         $sites = Site::query()
             ->with(['scans' => fn($q)=>$q->latest()->limit(1)])
             ->orderBy('created_at','desc')
-            ->paginate(10, ['id','name','domain','last_score','auto_fix','created_at']);
+            ->paginate(10, ['id','name','domain','last_score','auto_fix','connection_status','connection_checked_at','created_at']);
         return Inertia::render('Sites/Index', [ 'sites' => $sites ]);
     }
 
@@ -59,7 +59,8 @@ class SiteController extends Controller
     {
         $scan = $site->scans()->create(['status'=>'queued']);
         dispatch(new RunScanJob($site));
-        return response()->json(['queued'=>true], 202);
+
+        return redirect()->back()->with('message', 'Scan queued successfully');
     }
 
     public function applyFixes(Site $site, Scan $scan)
@@ -67,6 +68,17 @@ class SiteController extends Controller
         $action = $site->actions()->create(['scan_id'=>$scan->id,'type'=>'apply','payload'=>['scan_id'=>$scan->id]]);
         dispatch(new ApplyFixesJob($site, $scan, $action));
         return response()->json(['queued'=>true], 202);
+    }
+
+    public function checkConnection(Site $site)
+    {
+        $result = $site->checkConnection();
+
+        return redirect()->back()->with('message',
+            $result['success']
+                ? 'Connection successful!'
+                : 'Connection failed: ' . ($result['error'] ?? 'Unknown error')
+        );
     }
 }
 
