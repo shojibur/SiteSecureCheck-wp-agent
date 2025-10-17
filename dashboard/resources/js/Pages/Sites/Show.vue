@@ -121,8 +121,11 @@
                       <button @click="viewPlan(s)" class="px-3 py-1.5 text-sm font-medium text-primary-600 hover:bg-primary-50 rounded-lg transition-colors">
                         View Plan
                       </button>
-                      <button @click="applyFixes(s)" class="px-3 py-1.5 text-sm font-medium text-success-600 hover:bg-success-50 rounded-lg transition-colors">
+                      <button v-if="s.status === 'done'" @click="applyFixes(s)" class="px-3 py-1.5 text-sm font-medium text-success-600 hover:bg-success-50 rounded-lg transition-colors">
                         Apply Fixes
+                      </button>
+                      <button @click="deleteScan(s)" class="px-3 py-1.5 text-sm font-medium text-danger-600 hover:bg-danger-50 rounded-lg transition-colors">
+                        Delete
                       </button>
                     </div>
                   </td>
@@ -146,7 +149,7 @@
               <tbody class="divide-y divide-gray-100">
                 <tr v-for="(i, idx) in latestIssues" :key="idx" class="hover:bg-gray-50 transition-colors">
                   <td class="px-4 py-4">
-                    <span class="font-mono text-sm text-gray-900">{{ i.id || idx }}</span>
+                    <span class="font-mono text-sm text-gray-900">{{ i.fix_type || i.id || idx }}</span>
                   </td>
                   <td class="px-4 py-4 text-center">
                     <span :class="{
@@ -158,7 +161,7 @@
                     </span>
                   </td>
                   <td class="px-4 py-4 text-sm text-gray-700">
-                    {{ i.why || JSON.stringify(i) }}
+                    {{ i.message || i.why || i.reason || 'No description' }}
                   </td>
                 </tr>
               </tbody>
@@ -223,12 +226,13 @@
 
 <script setup>
 import { ref } from 'vue'
+import { router } from '@inertiajs/vue3'
 import AppLayout from '@/Layouts/AppLayout.vue'
 import SiteScoreBadge from '@/components/SiteScoreBadge.vue'
 import JsonViewer from '@/components/JsonViewer.vue'
 
-const props = defineProps({ site: Object, scans: Array, latestIssues: Array, actions: Array })
-const site = props.site || {}
+const props = defineProps({ siteData: Object, scans: Array, latestIssues: Array, actions: Array })
+const site = props.siteData || {}
 const scans = props.scans || []
 const latestIssues = props.latestIssues || []
 const actions = props.actions || []
@@ -249,5 +253,29 @@ function viewPlan(s){
 function applyFixes(s){
   if (!site?.id) return
   fetch(`/sites/${site.id}/scans/${s.id}/apply`,{method:'POST'})
+}
+
+function deleteScan(s){
+  console.log('deleteScan called', {site, scan: s})
+  if (!site?.id) {
+    console.error('No site ID')
+    return
+  }
+  if (!confirm('Are you sure you want to delete this scan?')) {
+    console.log('User cancelled')
+    return
+  }
+  const url = `/sites/${site.id}/scans/${s.id}`
+  console.log('Deleting scan at:', url)
+  router.delete(url, {
+    preserveScroll: true,
+    onSuccess: () => {
+      console.log('Delete successful')
+      window.location.reload()
+    },
+    onError: (errors) => {
+      console.error('Delete failed:', errors)
+    }
+  })
 }
 </script>

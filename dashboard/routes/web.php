@@ -15,6 +15,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/sites/{site}/scan', [SiteController::class,'scan'])->name('sites.scan');
     Route::post('/sites/{site}/check-connection', [SiteController::class,'checkConnection'])->name('sites.check-connection');
     Route::post('/sites/{site}/scans/{scan}/apply', [SiteController::class,'applyFixes'])->name('sites.scans.apply');
+    Route::delete('/sites/{site}/scans/{scan}', [SiteController::class,'deleteScan'])->name('sites.scans.delete');
 
     // Test/Debug routes (until Agent is implemented)
     Route::prefix('sites/{site}/test')->group(function () {

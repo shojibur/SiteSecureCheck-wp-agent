@@ -80,5 +80,11 @@ class SiteController extends Controller
                 : 'Connection failed: ' . ($result['error'] ?? 'Unknown error')
         );
     }
+
+    public function deleteScan(Site $site, Scan $scan)
+    {
+        $scan->delete();
+        return redirect()->back()->with('message', 'Scan deleted successfully');
+    }
 }
 
