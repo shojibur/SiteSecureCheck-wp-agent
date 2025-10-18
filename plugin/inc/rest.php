@@ -269,13 +269,3 @@ add_action('rest_api_init', function () {
     ]);
 });
 
-// Emit custom headers
-add_action('wp_send_headers', function () {
-    $headers = get_option('ssc_custom_headers', []);
-    if (is_array($headers)) {
-        foreach ($headers as $k => $v) {
-            if (is_string($k)) { header($k . ': ' . $v, true); }
-        }
-    }
-});
-
