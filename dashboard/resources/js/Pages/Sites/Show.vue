@@ -108,22 +108,25 @@
                     </span>
                   </td>
                   <td class="px-4 py-4 text-center">
-                    <span v-if="s.applied" class="inline-flex items-center gap-1 text-success-700">
+                    <span v-if="s.applied" class="inline-flex items-center gap-1 px-2 py-1 bg-success-50 text-success-700 rounded-full">
                       <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
                       </svg>
-                      <span class="text-xs font-medium">Yes</span>
+                      <span class="text-xs font-semibold">Applied</span>
                     </span>
-                    <span v-else class="text-xs font-medium text-gray-500">No</span>
+                    <span v-else class="text-xs font-medium text-gray-500">Not Applied</span>
                   </td>
                   <td class="px-4 py-4">
                     <div class="flex gap-2 justify-end">
                       <button @click="viewPlan(s)" class="px-3 py-1.5 text-sm font-medium text-primary-600 hover:bg-primary-50 rounded-lg transition-colors">
                         View Plan
                       </button>
-                      <button v-if="s.status === 'done'" @click="applyFixes(s)" class="px-3 py-1.5 text-sm font-medium text-success-600 hover:bg-success-50 rounded-lg transition-colors">
+                      <button v-if="s.status === 'done' && !s.applied" @click="applyFixes(s)" class="px-3 py-1.5 text-sm font-medium text-success-600 hover:bg-success-50 rounded-lg transition-colors">
                         Apply Fixes
                       </button>
+                      <span v-else-if="s.applied" class="px-3 py-1.5 text-sm font-medium text-gray-400 cursor-not-allowed">
+                        Already Applied
+                      </span>
                       <button @click="deleteScan(s)" class="px-3 py-1.5 text-sm font-medium text-danger-600 hover:bg-danger-50 rounded-lg transition-colors">
                         Delete
                       </button>
@@ -176,6 +179,7 @@
               <thead>
                 <tr class="border-b border-gray-200">
                   <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Action Type</th>
+                  <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Result</th>
                   <th class="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase">Timestamp</th>
                 </tr>
               </thead>
@@ -183,9 +187,18 @@
                 <tr v-for="a in actions" :key="a.created_at" class="hover:bg-gray-50 transition-colors">
                   <td class="px-4 py-4">
                     <div class="flex items-center gap-2">
-                      <div class="w-2 h-2 bg-primary-500 rounded-full"></div>
-                      <span class="text-sm font-medium text-gray-900 capitalize">{{ a.type }}</span>
+                      <div :class="a.result?.success === false ? 'bg-danger-500' : 'bg-primary-500'" class="w-2 h-2 rounded-full"></div>
+                      <span class="text-sm font-medium text-gray-900 capitalize">{{ a.type.replace(/_/g, ' ') }}</span>
                     </div>
+                  </td>
+                  <td class="px-4 py-4">
+                    <span v-if="a.result?.success === true" class="px-2 py-1 bg-success-50 text-success-700 text-xs font-medium rounded-full">
+                      Success
+                    </span>
+                    <span v-else-if="a.result?.success === false" class="px-2 py-1 bg-danger-50 text-danger-700 text-xs font-medium rounded-full">
+                      Failed: {{ a.result.error }}
+                    </span>
+                    <span v-else class="text-xs text-gray-500">-</span>
                   </td>
                   <td class="px-4 py-4 text-right text-sm text-gray-600">
                     {{ a.created_at }}
