@@ -82,16 +82,8 @@ class ApplyFixesJob implements ShouldQueue
                     'mode' => $config['mode'] ?? 'report-only',
                     'report_uri' => $config['report_uri'] ?? ''
                 ];
-            } elseif ($fixType === 'banner') {
-                // Banner/Region fix
-                $fixes[] = [
-                    'type' => 'banner',
-                    'enabled' => $config['enabled'] ?? true,
-                    'region' => $config['region'] ?? 'OTHER',
-                    'message' => $config['message'] ?? '',
-                    'block_scripts' => $config['block_scripts'] ?? []
-                ];
             }
+            // Banner feature removed - focusing on security headers only
         }
 
         try {

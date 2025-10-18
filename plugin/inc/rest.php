@@ -62,9 +62,7 @@ add_action('rest_api_init', function () {
         'callback' => function () {
             return [
                 'headers' => get_option('ssc_custom_headers', []),
-                'csp' => get_option('ssc_csp_config', []),
-                'banner' => get_option('ssc_banner_config', []),
-                'region' => get_option('ssc_region_mode', 'OTHER')
+                'csp' => get_option('ssc_csp_config', [])
             ];
         }
     ]);
@@ -87,8 +85,6 @@ add_action('rest_api_init', function () {
                 ],
                 'headers' => get_option('ssc_custom_headers', []),
                 'csp' => get_option('ssc_csp_config', []),
-                'banner' => get_option('ssc_banner_config', []),
-                'region' => get_option('ssc_region_mode', 'OTHER'),
                 'database' => [
                     'prefix' => $GLOBALS['wpdb']->prefix,
                     'is_default_prefix' => $GLOBALS['wpdb']->prefix === 'wp_',
@@ -151,18 +147,7 @@ add_action('rest_api_init', function () {
                         $result['success'] = true;
                         break;
 
-                    case 'banner':
-                        $banner_config = [
-                            'enabled' => $fix['enabled'] ?? true,
-                            'region' => $fix['region'] ?? 'OTHER',
-                            'message' => $fix['message'] ?? '',
-                            'block_scripts' => $fix['block_scripts'] ?? []
-                        ];
-                        update_option('ssc_banner_config', $banner_config, false);
-                        update_option('ssc_region_mode', $banner_config['region'], false);
-                        $snapshot_data['banner'] = $banner_config;
-                        $result['success'] = true;
-                        break;
+                    // Banner feature removed - focusing on security only
 
                     case 'policy_page':
                         $page_data = [

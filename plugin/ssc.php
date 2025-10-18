@@ -10,7 +10,8 @@ if (!defined('ABSPATH')) { exit; }
 require_once __DIR__ . '/inc/headers.php';
 require_once __DIR__ . '/inc/rest.php';
 require_once __DIR__ . '/inc/csp.php';
-require_once __DIR__ . '/inc/banner.php';
+// Cookie banner removed - focusing on security headers only
+// require_once __DIR__ . '/inc/banner.php';
 require_once __DIR__ . '/inc/rollback.php';
 require_once __DIR__ . '/inc/admin.php';
 require_once __DIR__ . '/inc/security-fixes.php';

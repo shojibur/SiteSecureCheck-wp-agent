@@ -37,7 +37,7 @@ class SiteController extends Controller
         $scans = $site->scans()->latest()->limit(10)->get(['id','score','status','applied','plan','raw','created_at']);
         $latestIssues = optional($site->scans()->latest()->first())->issues ?? [];
         $actions = $site->actions()->latest()->limit(10)->get(['type','result','created_at']);
-        $siteData = $site->only(['id','name','domain','region_mode','auto_fix','last_score','teams_webhook','email','created_at']);
+        $siteData = $site->only(['id','name','domain','auto_fix','last_score','teams_webhook','email','created_at']);
         return Inertia::render('Sites/Show', compact('siteData','scans','latestIssues','actions'));
     }
 
