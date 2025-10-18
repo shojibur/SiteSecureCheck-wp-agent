@@ -23,26 +23,36 @@ class Site extends Model
     public function actions(): HasMany { return $this->hasMany(Action::class); }
 
     /**
-     * Check plugin connection status
+     * Check plugin connection status with authentication
      */
     public function checkConnection(): array
     {
         try {
             $response = \Illuminate\Support\Facades\Http::timeout(5)
+                ->withHeaders([
+                    'Authorization' => 'Bearer ' . $this->wp_api_key
+                ])
                 ->get($this->wp_api_base . '/status');
 
             $isConnected = $response->successful();
+            $data = $response->json();
+
+            // Check if authentication worked
+            $authenticated = $data['authenticated'] ?? false;
 
             $this->update([
-                'connection_status' => $isConnected ? 'connected' : 'error',
+                'connection_status' => ($isConnected && $authenticated) ? 'connected' : 'error',
                 'connection_checked_at' => now(),
-                'connection_error' => $isConnected ? null : 'HTTP ' . $response->status()
+                'connection_error' => $isConnected ?
+                    ($authenticated ? null : 'Authentication failed - check API key') :
+                    'HTTP ' . $response->status()
             ]);
 
             return [
-                'success' => $isConnected,
+                'success' => $isConnected && $authenticated,
                 'status' => $response->status(),
-                'data' => $response->json()
+                'authenticated' => $authenticated,
+                'data' => $data
             ];
         } catch (\Exception $e) {
             $this->update([

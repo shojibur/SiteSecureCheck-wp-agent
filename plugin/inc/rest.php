@@ -31,15 +31,26 @@ function ssc_create_snapshot($type, $data) {
 }
 
 add_action('rest_api_init', function () {
-    // Status endpoint (public)
+    // Status endpoint (requires auth to verify connection)
     register_rest_route('ssc/v1', '/status', [
         'methods' => 'GET',
-        'permission_callback' => '__return_true',
+        'permission_callback' => function() {
+            // Allow both public access and authenticated access
+            // If Authorization header is present, verify it
+            $auth = isset($_SERVER['HTTP_AUTHORIZATION']) ? $_SERVER['HTTP_AUTHORIZATION'] : '';
+            if ($auth) {
+                return ssc_verify_api_key();
+            }
+            // Otherwise allow public access for health checks
+            return true;
+        },
         'callback' => function () {
+            $is_authenticated = ssc_verify_api_key();
             return [
                 'ok' => true,
                 'version' => '0.1.0',
-                'site_url' => get_site_url()
+                'site_url' => get_site_url(),
+                'authenticated' => $is_authenticated
             ];
         }
     ]);
@@ -58,10 +69,48 @@ add_action('rest_api_init', function () {
         }
     ]);
 
+    // Get security state (secured) - for scanning
+    register_rest_route('ssc/v1', '/security-state', [
+        'methods' => 'GET',
+        'permission_callback' => 'ssc_verify_api_key',
+        'callback' => function () {
+            global $wp_version;
+
+            return [
+                'wordpress' => [
+                    'version' => $wp_version,
+                    'debug_mode' => defined('WP_DEBUG') && WP_DEBUG,
+                    'ssl_enabled' => is_ssl(),
+                ],
+                'configs' => [
+                    'file_edit_disabled' => defined('DISALLOW_FILE_EDIT') && DISALLOW_FILE_EDIT,
+                ],
+                'headers' => get_option('ssc_custom_headers', []),
+                'csp' => get_option('ssc_csp_config', []),
+                'banner' => get_option('ssc_banner_config', []),
+                'region' => get_option('ssc_region_mode', 'OTHER'),
+                'database' => [
+                    'prefix' => $GLOBALS['wpdb']->prefix,
+                    'is_default_prefix' => $GLOBALS['wpdb']->prefix === 'wp_',
+                ],
+                'apis' => [
+                    'xml_rpc_enabled' => apply_filters('xmlrpc_enabled', true),
+                ]
+            ];
+        }
+    ]);
+
     // Apply fixes (batch endpoint)
     register_rest_route('ssc/v1', '/apply-fixes', [
         'methods' => 'POST',
-        'permission_callback' => 'ssc_verify_api_key',
+        'permission_callback' => function() {
+            $verified = ssc_verify_api_key();
+            error_log('SSC Apply Fixes Auth Check: ' . ($verified ? 'PASSED' : 'FAILED'));
+            if (!$verified) {
+                error_log('SSC Auth Header: ' . ($_SERVER['HTTP_AUTHORIZATION'] ?? 'MISSING'));
+            }
+            return $verified;
+        },
         'callback' => function (WP_REST_Request $req) {
             $body = $req->get_json_params();
             $fixes = isset($body['fixes']) ? $body['fixes'] : [];
